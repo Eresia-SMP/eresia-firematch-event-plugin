@@ -56,6 +56,10 @@ public class MainFireMatchCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2 && args[0].equals("help")) {
             return new ArrayList<>(subCommands.keySet());
         }
+        if (args.length >= 2 && subCommands.containsKey(args[0].toLowerCase())) {
+            SubCommand subCommand = subCommands.get(args[0].toLowerCase());
+            return subCommand.onTabComplete(sender, command, alias, args);
+        }
 
         return new ArrayList<>();
     }

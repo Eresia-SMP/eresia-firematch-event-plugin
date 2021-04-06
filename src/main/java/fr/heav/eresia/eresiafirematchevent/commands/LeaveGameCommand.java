@@ -1,7 +1,6 @@
 package fr.heav.eresia.eresiafirematchevent.commands;
 
 import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
-import fr.heav.eresia.eresiafirematchevent.GameManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -12,21 +11,21 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JoinGameCommand implements SubCommand {
+public class LeaveGameCommand implements SubCommand {
     @Override
     public String getDescription() {
-        return "Join une game";
+        return "Leave une game";
     }
     @Override
     public String getHelp() {
-        return "join [user that should join the game]";
+        return "leave [user that should leave the game]";
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         Player target;
         if (!(sender instanceof Player) && args.length < 2) {
-            sender.sendMessage(ChatColor.RED + "You must specify who should join the game");
+            sender.sendMessage(ChatColor.RED + "You must specify who should leave the game");
             return true;
         }
         if (args.length >= 2) {
@@ -40,15 +39,12 @@ public class JoinGameCommand implements SubCommand {
             target = (Player)sender;
         }
 
-        switch (EresiaFireMatchEvent.gameManager.addParticipant(target)) {
-            case Joined:
-                sender.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + target.getName() + ChatColor.RESET + ChatColor.GREEN + " has joined the game");
+        switch (EresiaFireMatchEvent.gameManager.removeParticipant(target)) {
+            case Left:
+                sender.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + target.getName() + ChatColor.RESET + ChatColor.GREEN + " has left the game");
                 break;
-            case GameAlreadyStarted:
-                sender.sendMessage(ChatColor.RED + "You can't join the game if it's already started");
-                break;
-            case PlayerAlreadyInGame:
-                sender.sendMessage(ChatColor.RED + "This player is already in the game");
+            case PlayerNotInGame:
+                sender.sendMessage(ChatColor.RED + "This player is not in the game");
                 break;
         }
 
