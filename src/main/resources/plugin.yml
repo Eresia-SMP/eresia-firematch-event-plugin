@@ -1,0 +1,11 @@
+name: EresiaFireMatchEvent
+version: ${project.version}
+main: fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent
+api-version: 1.16
+authors: [ Heavenstone ]
+
+commands:
+  firematch:
+    description: Commands that holds everything you can do with the FireMatch plugin
+    usage: /<command>
+    aliases: [ fm ]
