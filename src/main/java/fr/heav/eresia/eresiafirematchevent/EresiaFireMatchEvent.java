@@ -24,6 +24,7 @@ public final class EresiaFireMatchEvent extends JavaPlugin {
         mainFireMatchCommand.addSubcommand("leave", new LeaveGameCommand());
         mainFireMatchCommand.addSubcommand("start", new StartGameCommand());
         mainFireMatchCommand.addSubcommand("lobby", new LobbyCommand());
+        mainFireMatchCommand.addSubcommand("addspawn", new AddSpawnCommand());
         Objects.requireNonNull(getCommand("firematch")).setExecutor(mainFireMatchCommand);
         getServer().getPluginManager().registerEvents(gameManager, this);
 

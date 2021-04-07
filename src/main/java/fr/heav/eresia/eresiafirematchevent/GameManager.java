@@ -29,8 +29,6 @@ public class GameManager implements Listener {
             this.originalGameMode = player.getGameMode();
             this.playerTeam = playerTeam;
         }
-
-
     }
 
     private final Map<Player, Participant> participants = new HashMap<>();
@@ -120,5 +118,11 @@ public class GameManager implements Listener {
         if (participants.containsKey(event.getPlayer())) {
             event.setCancelled(true);
         }
+    }
+
+    public void addSpawnpoint(Location location) {
+        List<String> spawns = EresiaFireMatchEvent.save.getStringList("spawns");
+        spawns.add(getStringFromLocation(location));
+        EresiaFireMatchEvent.save.set("spawns", spawns);
     }
 }
