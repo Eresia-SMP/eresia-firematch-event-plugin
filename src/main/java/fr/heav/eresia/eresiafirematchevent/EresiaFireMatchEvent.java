@@ -6,7 +6,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -26,6 +25,7 @@ public final class EresiaFireMatchEvent extends JavaPlugin {
         mainFireMatchCommand.addSubcommand("start", new StartGameCommand());
         mainFireMatchCommand.addSubcommand("lobby", new LobbyCommand());
         Objects.requireNonNull(getCommand("firematch")).setExecutor(mainFireMatchCommand);
+        getServer().getPluginManager().registerEvents(gameManager, this);
 
         saveFile = new File(getDataFolder(), "save.yml");
         if (!saveFile.exists()) {

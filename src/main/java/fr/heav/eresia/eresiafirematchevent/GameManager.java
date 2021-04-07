@@ -1,9 +1,14 @@
 package fr.heav.eresia.eresiafirematchevent;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.jetbrains.annotations.NotNull;
@@ -11,17 +16,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class GameManager {
+public class GameManager implements Listener {
     private class Participant {
         public Player player;
         public Location originalLocation;
+        public GameMode originalGameMode;
         public Team playerTeam;
 
-        Participant(Player player, Location originalLocation, Team playerTeam) {
+        Participant(Player player, Team playerTeam) {
             this.player = player;
-            this.originalLocation = originalLocation;
+            this.originalLocation = player.getLocation().clone();
+            this.originalGameMode = player.getGameMode();
             this.playerTeam = playerTeam;
         }
+
+
     }
 
     private final Map<Player, Participant> participants = new HashMap<>();
@@ -73,7 +82,9 @@ public class GameManager {
         Team participantTeam = getScoreboard().registerNewTeam(player.getName().substring(0,Math.min(player.getName().length()-1, 15)));
         participantTeam.setAllowFriendlyFire(false);
         participantTeam.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
-        Participant participant = new Participant(player, player.getLocation().clone(), participantTeam);
+        Participant participant = new Participant(player, participantTeam);
+
+        player.setGameMode(GameMode.ADVENTURE);
 
         String stringLobbyLocation = EresiaFireMatchEvent.save.getString("lobby");
         if (stringLobbyLocation != null) {
@@ -96,10 +107,18 @@ public class GameManager {
         Participant participant = participants.remove(player);
         participant.playerTeam.unregister();
         player.teleport(participant.originalLocation);
+        player.setGameMode(participant.originalGameMode);
         return ParticipantLeaveResult.Left;
     }
     public enum ParticipantLeaveResult {
         Left,
         PlayerNotInGame,
+    }
+
+    @EventHandler
+    public void onPlayerChangeGamemode(PlayerGameModeChangeEvent event) {
+        if (participants.containsKey(event.getPlayer())) {
+            event.setCancelled(true);
+        }
     }
 }
