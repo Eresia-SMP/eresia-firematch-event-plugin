@@ -27,7 +27,7 @@ public final class EresiaFireMatchEvent extends JavaPlugin {
         mainFireMatchCommand.addSubcommand("lobby", new LobbyCommand());
         Objects.requireNonNull(getCommand("firematch")).setExecutor(mainFireMatchCommand);
 
-        saveFile = new File(getDataFolder(), "custom.yml");
+        saveFile = new File(getDataFolder(), "save.yml");
         if (!saveFile.exists()) {
             saveFile.getParentFile().mkdirs();
             saveResource("save.yml", false);

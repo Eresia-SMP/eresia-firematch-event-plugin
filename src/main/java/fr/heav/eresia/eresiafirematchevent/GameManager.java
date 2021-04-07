@@ -28,6 +28,11 @@ public class GameManager {
     private final Random random = new Random();
     private boolean isStarted = false;
     private Scoreboard scoreboard;
+    private Scoreboard getScoreboard() {
+        if (scoreboard == null)
+            scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        return scoreboard;
+    }
 
     public Location getLocationFromString(Server server, String locationStr) {
         String[] splittedPos = locationStr.split(";");
@@ -41,11 +46,7 @@ public class GameManager {
                 Float.parseFloat(splittedPos[5]));
     }
     public String getStringFromLocation(Location location) {
-        return location.getWorld().getName()+";"+location.getX()+";"+location.getY()+";"+location.getZ();
-    }
-
-    GameManager() {
-        scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        return location.getWorld().getName()+";"+location.getX()+";"+location.getY()+";"+location.getZ()+";"+location.getYaw()+";"+location.getPitch();
     }
 
     public @Nullable Location getRandomLocation() {
@@ -69,7 +70,7 @@ public class GameManager {
         if (participants.containsKey(player))
             return ParticipantJoinResult.PlayerAlreadyInGame;
 
-        Team participantTeam = scoreboard.registerNewTeam(player.getName()+"'s Team");
+        Team participantTeam = getScoreboard().registerNewTeam(player.getName().substring(0,Math.min(player.getName().length()-1, 15)));
         participantTeam.setAllowFriendlyFire(false);
         participantTeam.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
         Participant participant = new Participant(player, player.getLocation().clone(), participantTeam);
