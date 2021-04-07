@@ -75,8 +75,11 @@ public class GameManager {
         participantTeam.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
         Participant participant = new Participant(player, player.getLocation().clone(), participantTeam);
 
-        Location lobbyLocation = getLocationFromString(player.getServer(), Objects.requireNonNull(EresiaFireMatchEvent.save.getString("lobby")));
-        player.teleport(lobbyLocation);
+        String stringLobbyLocation = EresiaFireMatchEvent.save.getString("lobby");
+        if (stringLobbyLocation != null) {
+            Location lobbyLocation = getLocationFromString(player.getServer(), stringLobbyLocation);
+            player.teleport(lobbyLocation);
+        }
 
         participants.put(player, participant);
         return ParticipantJoinResult.Joined;
