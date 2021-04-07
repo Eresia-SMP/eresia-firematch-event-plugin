@@ -11,13 +11,14 @@ import java.util.Objects;
 
 public final class EresiaFireMatchEvent extends JavaPlugin {
     public static EresiaFireMatchEvent globalInstance;
-    public static GameManager gameManager = new GameManager();
+    public static GameManager gameManager;
     public static File saveFile;
     public static YamlConfiguration save;
 
     @Override
     public void onEnable() {
         globalInstance = this;
+        gameManager = new GameManager();
 
         MainFireMatchCommand mainFireMatchCommand = new MainFireMatchCommand();
         mainFireMatchCommand.addSubcommand("join", new JoinGameCommand());

@@ -1,5 +1,7 @@
 package fr.heav.eresia.eresiafirematchevent.commands;
 
+import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +22,16 @@ public class StartGameCommand implements SubCommand {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        return false;
+        switch (EresiaFireMatchEvent.gameManager.startGame()) {
+            case AlreadyStarted:
+                sender.sendMessage(ChatColor.RED + "The game is already started");
+                break;
+            case Started:
+                sender.sendMessage(ChatColor.WHITE + "The game has started");
+                break;
+        }
+
+        return true;
     }
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {

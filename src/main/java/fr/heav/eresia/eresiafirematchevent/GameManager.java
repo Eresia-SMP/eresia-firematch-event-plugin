@@ -1,16 +1,19 @@
 package fr.heav.eresia.eresiafirematchevent;
 
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Server;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.scoreboard.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,11 +37,12 @@ public class GameManager implements Listener {
     private final Map<Player, Participant> participants = new HashMap<>();
     private final Random random = new Random();
     private boolean isStarted = false;
-    private Scoreboard scoreboard;
-    private Scoreboard getScoreboard() {
-        if (scoreboard == null)
-            scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-        return scoreboard;
+    private final Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+    private final Objective killsObjs;
+
+    GameManager() {
+        killsObjs = scoreboard.registerNewObjective("kills", "THISISPLAYERKILLS", Component.text("Kills"));
+        killsObjs.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
 
     public Location getLocationFromString(Server server, String locationStr) {
@@ -70,6 +74,12 @@ public class GameManager implements Listener {
     public void setLobby(Location location) {
         EresiaFireMatchEvent.save.set("lobby", getStringFromLocation(location));
     }
+    public @Nullable Location getLobby() {
+        String stringLobbyLocation = EresiaFireMatchEvent.save.getString("lobby");
+        if (stringLobbyLocation == null)
+            return null;
+        return getLocationFromString(Bukkit.getServer(), stringLobbyLocation);
+    }
 
     public @NotNull ParticipantJoinResult addParticipant(@NotNull Player player) {
         if (isStarted)
@@ -77,18 +87,26 @@ public class GameManager implements Listener {
         if (participants.containsKey(player))
             return ParticipantJoinResult.PlayerAlreadyInGame;
 
-        Team participantTeam = getScoreboard().registerNewTeam(player.getName().substring(0,Math.min(player.getName().length()-1, 15)));
+        Team participantTeam = scoreboard.registerNewTeam(player.getName().substring(0,Math.min(player.getName().length()-1, 15)));
         participantTeam.setAllowFriendlyFire(false);
-        participantTeam.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OWN_TEAM);
+        participantTeam.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.FOR_OTHER_TEAMS);
+        participantTeam.addEntry(player.getName());
+        player.setScoreboard(scoreboard);
+        Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(1.0);
         Participant participant = new Participant(player, participantTeam);
+        killsObjs.getScore(player.getName()).setScore(0);
 
         player.setGameMode(GameMode.ADVENTURE);
 
-        String stringLobbyLocation = EresiaFireMatchEvent.save.getString("lobby");
-        if (stringLobbyLocation != null) {
-            Location lobbyLocation = getLocationFromString(player.getServer(), stringLobbyLocation);
+        Location lobbyLocation = getLobby();
+        if (lobbyLocation != null)
             player.teleport(lobbyLocation);
+
+        for (Player player2 : participants.keySet()) {
+            player2.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + player.getName() + ChatColor.RESET + ChatColor.GREEN + " has joined the game");
         }
+
+        player.getInventory().clear();
 
         participants.put(player, participant);
         return ParticipantJoinResult.Joined;
@@ -104,8 +122,16 @@ public class GameManager implements Listener {
             return ParticipantLeaveResult.PlayerNotInGame;
         Participant participant = participants.remove(player);
         participant.playerTeam.unregister();
+
         player.teleport(participant.originalLocation);
         player.setGameMode(participant.originalGameMode);
+        player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+        Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(20.0);
+
+        for (Player player2 : participants.keySet()) {
+            player2.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + player.getName() + ChatColor.RESET + ChatColor.RED + " has left the game");
+        }
+
         return ParticipantLeaveResult.Left;
     }
     public enum ParticipantLeaveResult {
@@ -118,6 +144,68 @@ public class GameManager implements Listener {
         if (participants.containsKey(event.getPlayer())) {
             event.setCancelled(true);
         }
+    }
+    @EventHandler
+    public void onPlayerLeave(PlayerQuitEvent event) {
+        if (participants.containsKey(event.getPlayer())) {
+            removeParticipant(event.getPlayer());
+            event.quitMessage(null);
+        }
+    }
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        if (!participants.containsKey(event.getEntity()))
+            return;
+        Player player = event.getEntity();
+        if (!isStarted) {
+            player.sendMessage(ChatColor.LIGHT_PURPLE + "How did you die when the game hasn't even started yet ??");
+            event.deathMessage(Component.text(player.getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)
+                    .append(Component.text(" is dead in a mysterious way").color(NamedTextColor.YELLOW)));
+        }
+        else {
+            event.deathMessage(Component.text(player.getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)
+                            .append(Component.text(" has been killed by ").color(NamedTextColor.YELLOW))
+                            .append(Component.text(player.getKiller().getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)));
+            Score score = killsObjs.getScore(player.getKiller().getName());
+            score.setScore(score.getScore()+1);
+        }
+    }
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        if (!participants.containsKey(event.getPlayer()))
+            return;
+        if (!isStarted) {
+            Location lobby = getLobby();
+            if (lobby != null)
+                event.setRespawnLocation(lobby);
+        }
+        else {
+            Location spawnLocation = getRandomLocation();
+            if (spawnLocation != null)
+                event.setRespawnLocation(spawnLocation);
+        }
+    }
+    @EventHandler
+    public void onPlayerLoseHunger(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player))
+            return;
+        event.setCancelled(true);
+    }
+
+    public StartGameResult startGame() {
+        if (isStarted)
+            return StartGameResult.AlreadyStarted;
+        for (Player player : participants.keySet()) {
+            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "THE GAME HAS STARTED!");
+            player.sendTitle("The game has started!", "Good luck", 10, 70, 10);
+            player.teleport(Objects.requireNonNull(getRandomLocation()));
+        }
+        isStarted = true;
+        return StartGameResult.Started;
+    }
+    public enum StartGameResult {
+        Started,
+        AlreadyStarted,
     }
 
     public void addSpawnpoint(Location location) {
