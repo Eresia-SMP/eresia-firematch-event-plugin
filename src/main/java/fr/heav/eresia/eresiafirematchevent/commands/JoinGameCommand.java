@@ -25,30 +25,33 @@ public class JoinGameCommand implements SubCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         Player target;
+        String targetName;
         if (!(sender instanceof Player) && args.length < 2) {
             sender.sendMessage(ChatColor.RED + "You must specify who should join the game");
             return true;
         }
         if (args.length >= 2) {
             target = sender.getServer().getPlayer(args[1]);
+            targetName = target.getName();
             if (target == null) {
-                sender.sendMessage(ChatColor.RED + "Could noy find player "+args[1]);
+                sender.sendMessage(ChatColor.RED + "Could not find player "+args[1]);
                 return true;
             }
         }
         else {
             target = (Player)sender;
+            targetName = "You";
         }
 
         switch (EresiaFireMatchEvent.gameManager.addParticipant(target)) {
             case Joined:
-                sender.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + target.getName() + ChatColor.RESET + ChatColor.GREEN + " has joined the game");
+                sender.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + targetName + ChatColor.RESET + ChatColor.WHITE + " has successfully joined to the game");
                 break;
             case GameAlreadyStarted:
-                sender.sendMessage(ChatColor.RED + "You can't join the game if it's already started");
+                sender.sendMessage(ChatColor.RED + targetName + " can't join the game if it's already started");
                 break;
             case PlayerAlreadyInGame:
-                sender.sendMessage(ChatColor.RED + "This player is already in the game");
+                sender.sendMessage(ChatColor.RED + targetName + " is already in the game");
                 break;
         }
 

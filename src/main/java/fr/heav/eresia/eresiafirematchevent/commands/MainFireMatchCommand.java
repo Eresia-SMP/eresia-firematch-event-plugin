@@ -28,10 +28,10 @@ public class MainFireMatchCommand implements CommandExecutor, TabCompleter {
         if (subCommandName.equals("help")) {
             if (args.length >= 2 && subCommands.containsKey(args[1].toLowerCase())) {
                 SubCommand subCommand = subCommands.get(args[1].toLowerCase());
-                sender.sendMessage(ChatColor.GREEN+"Usage:\n"+ChatColor.WHITE+"/"+label+" "+subCommand.getHelp());
+                sender.sendMessage(ChatColor.WHITE+"Usage:\n/"+label+" "+subCommand.getHelp()+ChatColor.GRAY+" - "+subCommand.getDescription());
             }
             else {
-                sender.sendMessage(ChatColor.GREEN+"Usage:\n"+ChatColor.WHITE+getHelp(label));
+                sender.sendMessage(ChatColor.WHITE+"Usage:\n"+getHelp(label));
             }
             return true;
         }
@@ -65,10 +65,7 @@ public class MainFireMatchCommand implements CommandExecutor, TabCompleter {
     }
 
     public String getHelp(@NotNull String label) {
-        StringBuilder message = new StringBuilder();/*
-        if (invalidUsage) {
-            message.append(ChatColor.RED).append("Invalid usage, valid subcommands:\n");
-        }*/
+        StringBuilder message = new StringBuilder();
         message.append(ChatColor.WHITE).append("/").append(label).append(" help").append(ChatColor.GRAY).append(" - Sends this message").append(ChatColor.WHITE);
         for (Map.Entry<String, SubCommand> subCommand : subCommands.entrySet()) {
             message.append("\n/").append(label).append(" ").append(subCommand.getKey())

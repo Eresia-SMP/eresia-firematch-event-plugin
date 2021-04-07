@@ -24,6 +24,7 @@ public class LeaveGameCommand implements SubCommand {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         Player target;
+        String targetName;
         if (!(sender instanceof Player) && args.length < 2) {
             sender.sendMessage(ChatColor.RED + "You must specify who should leave the game");
             return true;
@@ -34,17 +35,19 @@ public class LeaveGameCommand implements SubCommand {
                 sender.sendMessage(ChatColor.RED + "Could noy find player "+args[1]);
                 return true;
             }
+            targetName = target.getName();
         }
         else {
             target = (Player)sender;
+            targetName = "You";
         }
 
         switch (EresiaFireMatchEvent.gameManager.removeParticipant(target)) {
             case Left:
-                sender.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + target.getName() + ChatColor.RESET + ChatColor.GREEN + " has left the game");
+                sender.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + targetName + ChatColor.RESET + ChatColor.WHITE + " has successfully left the game");
                 break;
             case PlayerNotInGame:
-                sender.sendMessage(ChatColor.RED + "This player is not in the game");
+                sender.sendMessage(ChatColor.RED + targetName + " is not in the game");
                 break;
         }
 

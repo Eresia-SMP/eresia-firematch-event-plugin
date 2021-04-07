@@ -30,7 +30,7 @@ public class LobbyCommand implements SubCommand {
         }
         Player player = (Player) sender;
         EresiaFireMatchEvent.gameManager.setLobby(player.getLocation());
-        player.sendMessage(ChatColor.GREEN + "The lobby location has been changed");
+        player.sendMessage(ChatColor.WHITE + "The lobby location has been changed");
         return true;
     }
 
