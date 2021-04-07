@@ -1,5 +1,6 @@
 package fr.heav.eresia.eresiafirematchevent.commands;
 
+import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -25,6 +26,16 @@ public class StopCommand implements SubCommand {
             sender.sendMessage(ChatColor.RED + "You do not have the permission to stop the game");
             return true;
         }
+
+        switch (EresiaFireMatchEvent.gameManager.stopGame()) {
+            case Stopped:
+                sender.sendMessage(ChatColor.WHITE + "The game has been stopped");
+                break;
+            case AlreadyStopped:
+                sender.sendMessage(ChatColor.RED + "You cannot stop this game");
+                break;
+        }
+
         return true;
     }
 

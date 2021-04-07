@@ -42,7 +42,7 @@ public class GameManager implements Listener {
     private boolean isStarted = false;
     private boolean isEnded = false;
     private final Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
-    private final Objective killsObjs;
+    private Objective killsObjs;
 
     public boolean getIsStarted() {
         return isStarted;
@@ -52,6 +52,11 @@ public class GameManager implements Listener {
     }
 
     GameManager() {
+        recreateKillsObjective();
+    }
+    private void recreateKillsObjective() {
+        if (killsObjs != null)
+            killsObjs.unregister();
         killsObjs = scoreboard.registerNewObjective("kills", "THISISPLAYERKILLS", Component.text("Kills"));
         killsObjs.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
@@ -220,17 +225,19 @@ public class GameManager implements Listener {
         AlreadyStarted,
     }
 
+    private BossBar endGameTimingBossBar = null;
+    private int endGameTimerTaskId = 0;
     public EndGameResult endGame() {
         if (isEnded || !isStarted)
             return EndGameResult.AlreadyEnded;
         isEnded = true;
 
-        BossBar timingBossBar = Bukkit.getServer().createBossBar("firematchendgameremaning", BarColor.WHITE, BarStyle.SOLID);
-        timingBossBar.setProgress(0.0);
-        timingBossBar.setTitle("Congratulations !");
+        endGameTimingBossBar = Bukkit.getServer().createBossBar("firematchendgameremaning", BarColor.WHITE, BarStyle.SOLID);
+        endGameTimingBossBar.setProgress(0.0);
+        endGameTimingBossBar.setTitle("Congratulations !");
 
         for (Player player : participants.keySet()) {
-            timingBossBar.addPlayer(player);
+            endGameTimingBossBar.addPlayer(player);
             player.sendTitle(
                     ChatColor.GREEN + "End !",
                     ChatColor.UNDERLINE + "" + ChatColor.DARK_GRAY + "The game is finished",
@@ -241,24 +248,11 @@ public class GameManager implements Listener {
 
         long startTime = System.nanoTime();
 
-        int timerTaskId = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(EresiaFireMatchEvent.globalInstance, () -> {
-            timingBossBar.setProgress(((double)(System.nanoTime()-startTime)) / (30_000_000_000.0D));
+        endGameTimerTaskId = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(EresiaFireMatchEvent.globalInstance, () -> {
+            endGameTimingBossBar.setProgress(((double)(System.nanoTime()-startTime)) / (30_000_000_000.0D));
         }, 0, 10);
 
-        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(EresiaFireMatchEvent.globalInstance, () -> {
-            Bukkit.getServer().getScheduler().cancelTask(timerTaskId);
-            timingBossBar.removeAll();
-
-            Location lobby = getLobby();
-            for (Player player : participants.keySet()) {
-                if (lobby != null)
-                    player.teleport(lobby);
-                player.setGameMode(GameMode.ADVENTURE);
-            }
-
-            isStarted = false;
-            isEnded = false;
-        }, 20 * 30);
+        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(EresiaFireMatchEvent.globalInstance, this::stopGame, 20 * 30);
 
         return EndGameResult.Ended;
     }
@@ -271,7 +265,21 @@ public class GameManager implements Listener {
         if (!isStarted)
             return StopGameResult.AlreadyStopped;
 
+        recreateKillsObjective();
 
+        if (isEnded || endGameTimingBossBar != null || endGameTimerTaskId != 0) {
+            Bukkit.getServer().getScheduler().cancelTask(endGameTimerTaskId);
+            endGameTimingBossBar.removeAll();
+            endGameTimerTaskId = 0;
+            endGameTimingBossBar = null;
+        }
+
+        Location lobby = getLobby();
+        for (Player player : participants.keySet()) {
+            if (lobby != null)
+                player.teleport(lobby);
+            player.setGameMode(GameMode.ADVENTURE);
+        }
 
         isStarted = false;
         isEnded = false;
