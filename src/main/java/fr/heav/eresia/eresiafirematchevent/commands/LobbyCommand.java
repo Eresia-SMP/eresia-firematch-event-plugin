@@ -24,6 +24,10 @@ public class LobbyCommand implements SubCommand {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (!sender.hasPermission("firematch.setLobby")) {
+            sender.sendMessage(ChatColor.RED + "You do not have the permission to change the lobby");
+            return true;
+        }
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED + "Only players can change the lobby location");
             return true;

@@ -24,6 +24,12 @@ public class JoinGameCommand implements SubCommand {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        GameManager gameManager = EresiaFireMatchEvent.gameManager;
+
+        if (!sender.hasPermission("firematch.joinMatch")) {
+            sender.sendMessage(ChatColor.RED + "You do not have the permission to join a game");
+            return true;
+        }
         Player target;
         String targetName;
         if (!(sender instanceof Player) && args.length < 2) {
@@ -31,6 +37,10 @@ public class JoinGameCommand implements SubCommand {
             return true;
         }
         if (args.length >= 2) {
+            if (!sender.hasPermission("firematch.joinMatch.someoneElse")) {
+                sender.sendMessage(ChatColor.RED + "You do not have the permission to make someone join a game");
+                return true;
+            }
             target = sender.getServer().getPlayer(args[1]);
             targetName = target.getName();
             if (target == null) {
@@ -43,15 +53,18 @@ public class JoinGameCommand implements SubCommand {
             targetName = "You";
         }
 
-        switch (EresiaFireMatchEvent.gameManager.addParticipant(target)) {
+        switch (EresiaFireMatchEvent.gameManager.addParticipant(target, sender.hasPermission("firematch.joinMatch.during"))) {
             case Joined:
                 sender.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + targetName + ChatColor.RESET + ChatColor.WHITE + " has successfully joined to the game");
                 break;
-            case GameAlreadyStarted:
-                sender.sendMessage(ChatColor.RED + targetName + " can't join the game if it's already started");
+            case GameInEndScene:
+                sender.sendMessage(ChatColor.RED + targetName + " can't join the game because it's currently in the end scene");
+                break;
+            case GameStarted:
+                sender.sendMessage(ChatColor.RED + targetName + " can't join this game, it's still in progress");
                 break;
             case PlayerAlreadyInGame:
-                sender.sendMessage(ChatColor.RED + targetName + " is already in the game");
+                sender.sendMessage(ChatColor.RED + targetName + " is/are already in the game");
                 break;
         }
 
@@ -59,7 +72,7 @@ public class JoinGameCommand implements SubCommand {
     }
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        if (args.length == 2) {
+        if (args.length == 2 && sender.hasPermission("firematch.joinMatch.someoneElse")) {
             return null;
         }
 

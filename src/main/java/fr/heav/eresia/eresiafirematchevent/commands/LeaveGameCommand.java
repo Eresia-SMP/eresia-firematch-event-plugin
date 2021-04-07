@@ -23,6 +23,10 @@ public class LeaveGameCommand implements SubCommand {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
+        if (!sender.hasPermission("firematch.leaveMatch")) {
+            sender.sendMessage(ChatColor.RED + "You do not have the permission to leave a game");
+            return true;
+        }
         Player target;
         String targetName;
         if (!(sender instanceof Player) && args.length < 2) {
@@ -30,6 +34,10 @@ public class LeaveGameCommand implements SubCommand {
             return true;
         }
         if (args.length >= 2) {
+            if (!sender.hasPermission("firematch.leaveMatch.someoneElse")) {
+                sender.sendMessage(ChatColor.RED + "You do not have the permission to make someone leave a game");
+                return true;
+            }
             target = sender.getServer().getPlayer(args[1]);
             if (target == null) {
                 sender.sendMessage(ChatColor.RED + "Could noy find player "+args[1]);

@@ -5,6 +5,9 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -37,8 +40,16 @@ public class GameManager implements Listener {
     private final Map<Player, Participant> participants = new HashMap<>();
     private final Random random = new Random();
     private boolean isStarted = false;
+    private boolean isEnded = false;
     private final Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
     private final Objective killsObjs;
+
+    public boolean getIsStarted() {
+        return isStarted;
+    }
+    public boolean getIsEnded() {
+        return isEnded;
+    }
 
     GameManager() {
         killsObjs = scoreboard.registerNewObjective("kills", "THISISPLAYERKILLS", Component.text("Kills"));
@@ -81,9 +92,11 @@ public class GameManager implements Listener {
         return getLocationFromString(Bukkit.getServer(), stringLobbyLocation);
     }
 
-    public @NotNull ParticipantJoinResult addParticipant(@NotNull Player player) {
-        if (isStarted)
-            return ParticipantJoinResult.GameAlreadyStarted;
+    public @NotNull ParticipantJoinResult addParticipant(@NotNull Player player, boolean shouldJoinIfGameIsStarted) {
+        if (isEnded)
+            return ParticipantJoinResult.GameInEndScene;
+        if (isStarted && !shouldJoinIfGameIsStarted)
+            return ParticipantJoinResult.GameStarted;
         if (participants.containsKey(player))
             return ParticipantJoinResult.PlayerAlreadyInGame;
 
@@ -98,9 +111,13 @@ public class GameManager implements Listener {
 
         player.setGameMode(GameMode.ADVENTURE);
 
-        Location lobbyLocation = getLobby();
-        if (lobbyLocation != null)
-            player.teleport(lobbyLocation);
+        Location spawnLocation;
+        if (isStarted)
+            spawnLocation = getRandomLocation();
+        else
+            spawnLocation = getLobby();
+        if (spawnLocation != null)
+            player.teleport(spawnLocation);
 
         for (Player player2 : participants.keySet()) {
             player2.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + player.getName() + ChatColor.RESET + ChatColor.GREEN + " has joined the game");
@@ -114,7 +131,8 @@ public class GameManager implements Listener {
     public enum ParticipantJoinResult {
         Joined,
         PlayerAlreadyInGame,
-        GameAlreadyStarted,
+        GameInEndScene,
+        GameStarted,
     }
 
     public ParticipantLeaveResult removeParticipant(@NotNull Player player) {
@@ -139,12 +157,6 @@ public class GameManager implements Listener {
         PlayerNotInGame,
     }
 
-    @EventHandler
-    public void onPlayerChangeGamemode(PlayerGameModeChangeEvent event) {
-        if (participants.containsKey(event.getPlayer())) {
-            event.setCancelled(true);
-        }
-    }
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event) {
         if (participants.containsKey(event.getPlayer())) {
@@ -206,6 +218,68 @@ public class GameManager implements Listener {
     public enum StartGameResult {
         Started,
         AlreadyStarted,
+    }
+
+    public EndGameResult endGame() {
+        if (isEnded || !isStarted)
+            return EndGameResult.AlreadyEnded;
+        isEnded = true;
+
+        BossBar timingBossBar = Bukkit.getServer().createBossBar("firematchendgameremaning", BarColor.WHITE, BarStyle.SOLID);
+        timingBossBar.setProgress(0.0);
+        timingBossBar.setTitle("Congratulations !");
+
+        for (Player player : participants.keySet()) {
+            timingBossBar.addPlayer(player);
+            player.sendTitle(
+                    ChatColor.GREEN + "End !",
+                    ChatColor.UNDERLINE + "" + ChatColor.DARK_GRAY + "The game is finished",
+                    10, 40, 10
+            );
+            player.setGameMode(GameMode.SPECTATOR);
+        }
+
+        long startTime = System.nanoTime();
+
+        int timerTaskId = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(EresiaFireMatchEvent.globalInstance, () -> {
+            timingBossBar.setProgress(((double)(System.nanoTime()-startTime)) / (30_000_000_000.0D));
+        }, 0, 10);
+
+        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(EresiaFireMatchEvent.globalInstance, () -> {
+            Bukkit.getServer().getScheduler().cancelTask(timerTaskId);
+            timingBossBar.removeAll();
+
+            Location lobby = getLobby();
+            for (Player player : participants.keySet()) {
+                if (lobby != null)
+                    player.teleport(lobby);
+                player.setGameMode(GameMode.ADVENTURE);
+            }
+
+            isStarted = false;
+            isEnded = false;
+        }, 20 * 30);
+
+        return EndGameResult.Ended;
+    }
+    public enum EndGameResult {
+        Ended,
+        AlreadyEnded,
+    }
+
+    public StopGameResult stopGame() {
+        if (!isStarted)
+            return StopGameResult.AlreadyStopped;
+
+
+
+        isStarted = false;
+        isEnded = false;
+        return StopGameResult.Stopped;
+    }
+    public enum StopGameResult {
+        Stopped,
+        AlreadyStopped,
     }
 
     public void addSpawnpoint(Location location) {

@@ -1,6 +1,5 @@
 package fr.heav.eresia.eresiafirematchevent.commands;
 
-import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -10,33 +9,25 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StartGameCommand implements SubCommand {
+public class StopCommand implements SubCommand {
     @Override
     public String getDescription() {
-        return "Start une game";
+        return "Stop the game";
     }
     @Override
     public String getHelp() {
-        return "start";
+        return "stop";
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("firematch.startGame")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to start the game");
+        if (!sender.hasPermission("firematch.stopGame")) {
+            sender.sendMessage(ChatColor.RED + "You do not have the permission to stop the game");
             return true;
         }
-        switch (EresiaFireMatchEvent.gameManager.startGame()) {
-            case AlreadyStarted:
-                sender.sendMessage(ChatColor.RED + "The game is already started");
-                break;
-            case Started:
-                sender.sendMessage(ChatColor.WHITE + "The game has started");
-                break;
-        }
-
         return true;
     }
+
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         return new ArrayList<>();

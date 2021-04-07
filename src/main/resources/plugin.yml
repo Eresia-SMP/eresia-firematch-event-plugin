@@ -9,3 +9,35 @@ commands:
     description: Commands that holds everything you can do with the FireMatch plugin
     usage: /<command>
     aliases: [ fm ]
+
+permissions:
+  firematch.*:
+    default: op
+    description: Gives you every permissions from firematch
+    children:
+      firematch.joinMatch: true
+      firematch.leaveMatch: true
+      firematch.joinMatch.during: true
+  firematch.joinMatch:
+    description: Let you do /fm join
+    default: true
+  firematch.joinMatch.during:
+    description: Let you join a match even if it's started
+  firematch.joinMatch.someoneElse:
+    description: Let you make someone join a match with /fm join <player>
+  firematch.leaveMatch:
+    description: Let you do /fm leave
+    default: true
+  firematch.leaveMatch.someoneElse:
+    description: Let you make someone leave a match with /fm leave <player>
+    default: true
+  firematch.setLobby:
+    description: Let you do /fm lobby
+  firematch.addSpawn:
+    description: Let you do /fm add
+  firematch.startGame:
+    description: Let you do /fm start
+  firematch.endGame:
+    description: Let you do /fm end
+  firematch.stopGame:
+    description: Let you do /fm stop
