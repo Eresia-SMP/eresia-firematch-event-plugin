@@ -32,7 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class GameManager implements Listener {
-    final int respawnDuration = 3_000;
+    int respawnDuration = 3_000;
+    int endGameDuration = 30_000;
 
     private static class Participant {
         public Player player;
@@ -425,14 +426,17 @@ public class GameManager implements Listener {
             );
             player.setGameMode(GameMode.SPECTATOR);
         }
-
-        long startTime = System.nanoTime();
-
+        long startTime = System.currentTimeMillis();
         endGameTimerTaskId = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(EresiaFireMatchEvent.globalInstance, () -> {
-            endGameTimingBossBar.setProgress(((double)(System.nanoTime()-startTime)) / (30_000_000_000.0D));
+            long elapsedTime = System.currentTimeMillis()-startTime;
+            double progress = Math.min(1., ((double)elapsedTime) / ((double)endGameDuration));
+            endGameTimingBossBar.setProgress(progress);
         }, 0, 10);
-
-        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(EresiaFireMatchEvent.globalInstance, this::stopGame, 20 * 30);
+        Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(
+                EresiaFireMatchEvent.globalInstance,
+                this::stopGame,
+                endGameDuration / 50
+        );
 
         return EndGameResult.Ended;
     }
