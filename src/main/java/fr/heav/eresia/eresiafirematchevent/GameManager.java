@@ -9,10 +9,12 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Bat;
+import org.bukkit.entity.Boss;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -30,7 +32,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class GameManager implements Listener {
-    private class Participant {
+    final int respawnDuration = 3_000;
+
+    private static class Participant {
         public Player player;
         public Location originalLocation;
         public GameMode originalGameMode;
@@ -52,6 +56,12 @@ public class GameManager implements Listener {
     private Objective killsObjs;
     private final ItemStack firework;
     private final ItemStack crossBow;
+    private Map<Player, RespawningPlayer> respawningPlayers = new HashMap<>();
+    private static class RespawningPlayer {
+        public BossBar timerBossBar;
+        public int bossBarRefreshTask;
+        public int timerEndTask;
+    }
 
     public boolean getIsStarted() {
         return isStarted;
@@ -89,6 +99,27 @@ public class GameManager implements Listener {
             killsObjs.unregister();
         killsObjs = scoreboard.registerNewObjective("kills", "THISISPLAYERKILLS", Component.text("Kills"));
         killsObjs.setDisplaySlot(DisplaySlot.SIDEBAR);
+    }
+    private void broadcastMessage(Component message) {
+        for (Player player : participants.keySet()) {
+            player.sendMessage(message);
+        }
+    }
+    private void resetRespawningPlayers() {
+        for (Map.Entry<Player, RespawningPlayer> player : respawningPlayers.entrySet()) {
+            player.getValue().timerBossBar.removeAll();
+            Bukkit.getScheduler().cancelTask(player.getValue().bossBarRefreshTask);
+            Bukkit.getScheduler().cancelTask(player.getValue().timerEndTask);
+        }
+        respawningPlayers.clear();
+    }
+    private void resetARespawningPlayers(Player player) {
+        if (!respawningPlayers.containsKey(player))
+            return;
+        RespawningPlayer rp = respawningPlayers.remove(player);
+        rp.timerBossBar.removeAll();
+        Bukkit.getScheduler().cancelTask(rp.bossBarRefreshTask);
+        Bukkit.getScheduler().cancelTask(rp.timerEndTask);
     }
 
     public Location getLocationFromString(Server server, String locationStr) {
@@ -155,9 +186,13 @@ public class GameManager implements Listener {
                 player.teleport(spawnLocation);
         }
 
-        for (Player player2 : participants.keySet()) {
-            player2.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + player.getName() + ChatColor.RESET + ChatColor.GREEN + " has joined the game");
-        }
+        broadcastMessage(
+                Component.text()
+                        .append(Component.text(player.getName()).decorate(TextDecoration.BOLD))
+                        .append(Component.text(" landed in the game"))
+                        .color(NamedTextColor.GREEN)
+                        .build()
+        );
 
         participants.put(player, participant);
         return ParticipantJoinResult.Joined;
@@ -180,9 +215,15 @@ public class GameManager implements Listener {
         player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
         Objects.requireNonNull(player.getAttribute(Attribute.GENERIC_MAX_HEALTH)).setBaseValue(20.0);
 
-        for (Player player2 : participants.keySet()) {
-            player2.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + player.getName() + ChatColor.RESET + ChatColor.RED + " has left the game");
-        }
+        broadcastMessage(
+                Component.text()
+                .append(Component.text(player.getName()).decorate(TextDecoration.BOLD))
+                .append(Component.text(" is flying to other mini games"))
+                .color(NamedTextColor.RED)
+                .build()
+        );
+
+        resetARespawningPlayers(player);
 
         return ParticipantLeaveResult.Left;
     }
@@ -209,43 +250,70 @@ public class GameManager implements Listener {
                     .append(Component.text(" is dead in a mysterious way").color(NamedTextColor.YELLOW)));
         }
         else {
+            event.setCancelled(true);
+            player.setGameMode(GameMode.SPECTATOR);
+
+            String killerName;
             if (player.getKiller() == null) {
-                event.deathMessage(
-                        Component.text()
-                            .append(Component.text(player.getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD))
-                            .append(Component.text(" has been killed by... nobody ?").color(NamedTextColor.YELLOW))
-                            .build()
-                );
+                killerName = "xXx_Admin_Magic_xXx";
             }
             else {
-                event.deathMessage(
-                        Component.text()
-                                .append(Component.text(player.getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD))
-                                .append(Component.text(" has been killed by ").color(NamedTextColor.YELLOW))
-                                .append(Component.text(player.getKiller().getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD))
-                                .build()
-                );
+                killerName = player.getKiller().getName();
+                Score score = killsObjs.getScore(player.getKiller().getName());
+                score.setScore(score.getScore()+1);
             }
-            Score score = killsObjs.getScore(player.getKiller().getName());
-            score.setScore(score.getScore()+1);
+            broadcastMessage(
+                    Component.text()
+                            .append(Component.text(player.getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD))
+                            .append(Component.text(" has been killed by ").color(NamedTextColor.YELLOW))
+                            .append(Component.text(killerName).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD))
+                            .build()
+            );
 
+            player.sendTitle(
+                    ChatColor.RED + "You are dead",
+                    ChatColor.GOLD + "You were killed by "+killerName,
+                    10,60,10
+            );
+
+            long start = System.currentTimeMillis();
+
+            RespawningPlayer rp = new RespawningPlayer();
+            respawningPlayers.put(player, rp);
+            rp.timerBossBar = Bukkit.getServer().createBossBar(ChatColor.RED + "Respawn in 3s", BarColor.RED, BarStyle.SOLID);
+            rp.timerBossBar.setProgress(0.);
+            rp.timerBossBar.addPlayer(player);
+
+            rp.bossBarRefreshTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(EresiaFireMatchEvent.globalInstance, () -> {
+                long currentTime = System.currentTimeMillis() - start;
+                double progress = Math.min(1.0, ((double)currentTime) / ((double)respawnDuration));
+                rp.timerBossBar.setProgress(progress);
+            }, 0, 5);
+
+            rp.timerEndTask = Bukkit.getScheduler().scheduleSyncDelayedTask(EresiaFireMatchEvent.globalInstance, () -> {
+                rp.timerBossBar.removeAll();
+                Bukkit.getScheduler().cancelTask(rp.bossBarRefreshTask);
+
+                Location spawnLocation = getRandomLocation();
+                if (spawnLocation != null)
+                    player.teleport(spawnLocation);
+                player.setGameMode(GameMode.ADVENTURE);
+                player.getInventory().setItem(4, crossBow.clone());
+
+                respawningPlayers.remove(player);
+            }, respawnDuration / 50); // Ms / 50 = Tick
         }
     }
     @EventHandler
-    public void onPlayerRespawn(PlayerRespawnEvent event) {
+    public void onPlayerMove(PlayerMoveEvent event) {
         if (!participants.containsKey(event.getPlayer()))
             return;
-        Player player = event.getPlayer();
-        if (!isStarted) {
-            Location lobby = getLobby();
-            if (lobby != null)
-                event.setRespawnLocation(lobby);
-        }
-        else {
-            Location spawnLocation = getRandomLocation();
-            if (spawnLocation != null)
-                event.setRespawnLocation(spawnLocation);
-            player.getInventory().setItem(4, crossBow.clone());
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        if (respawningPlayers.containsKey(event.getPlayer()) && (
+                from.getX() != to.getX() || from.getY() != to.getY() || from.getZ() != to.getZ()
+                )) {
+            event.setCancelled(true);
         }
     }
     @EventHandler
@@ -277,12 +345,12 @@ public class GameManager implements Listener {
     }
     @EventHandler
     public void onPlayerSwapHands(PlayerSwapHandItemsEvent event) {
-        if (!participants.containsKey(event.getPlayer()) && isStarted)
+        if (!participants.containsKey(event.getPlayer()) || !isStarted)
             return;
         event.setCancelled(true);
     }
     @EventHandler
-    public void onPlayerSwapHands(PlayerInteractAtEntityEvent event) {
+    public void onPlayerInteractAtEntity(PlayerInteractAtEntityEvent event) {
         if (!participants.containsKey(event.getPlayer()))
             return;
         event.setCancelled(true);
@@ -314,7 +382,6 @@ public class GameManager implements Listener {
             return StartGameResult.AlreadyStarted;
 
         for (Player player : participants.keySet()) {
-            player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "THE GAME HAS STARTED!");
             player.sendTitle("The game has started!", "Good luck", 10, 70, 10);
             makeAPlayerStartGame(player);
         }
@@ -342,6 +409,8 @@ public class GameManager implements Listener {
         if (isEnded || !isStarted)
             return EndGameResult.AlreadyEnded;
         isEnded = true;
+
+        resetRespawningPlayers();
 
         endGameTimingBossBar = Bukkit.getServer().createBossBar("firematchendgameremaning", BarColor.WHITE, BarStyle.SOLID);
         endGameTimingBossBar.setProgress(0.0);
@@ -376,6 +445,7 @@ public class GameManager implements Listener {
         if (!isStarted)
             return StopGameResult.AlreadyStopped;
 
+        resetRespawningPlayers();
         recreateKillsObjective();
 
         if (isEnded || endGameTimingBossBar != null || endGameTimerTaskId != 0) {
