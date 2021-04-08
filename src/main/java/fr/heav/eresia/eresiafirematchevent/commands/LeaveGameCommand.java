@@ -45,7 +45,7 @@ public class LeaveGameCommand implements SubCommand {
             }
             target = sender.getServer().getPlayer(args[1]);
             if (target == null) {
-                sender.sendMessage(ChatColor.RED + "Could noy find player "+args[1]);
+                sender.sendMessage(ChatColor.RED + "Could not find player "+args[1]);
                 return true;
             }
             targetName = target.getName();
