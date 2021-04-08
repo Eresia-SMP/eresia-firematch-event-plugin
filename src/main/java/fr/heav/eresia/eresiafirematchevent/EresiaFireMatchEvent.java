@@ -26,6 +26,8 @@ public final class EresiaFireMatchEvent extends JavaPlugin {
         mainFireMatchCommand.addSubcommand("lobby", new LobbyCommand(this));
         mainFireMatchCommand.addSubcommand("start", new StartGameCommand(this));
         mainFireMatchCommand.addSubcommand("stop", new StopCommand(this));
+        mainFireMatchCommand.addSubcommand("loadsave", new LoadSaveCommand(this));
+        mainFireMatchCommand.addSubcommand("savesave", new SaveSaveCommand(this));
         Objects.requireNonNull(getCommand("firematch")).setExecutor(mainFireMatchCommand);
         getServer().getPluginManager().registerEvents(gameManager, this);
 
@@ -47,6 +49,13 @@ public final class EresiaFireMatchEvent extends JavaPlugin {
         try {
             save.save(saveFile);
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void loadSave() {
+        try {
+            save.load(saveFile);
+        } catch (IOException | InvalidConfigurationException e) {
             e.printStackTrace();
         }
     }

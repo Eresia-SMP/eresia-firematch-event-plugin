@@ -41,3 +41,7 @@ permissions:
     description: Let you do /fm end
   firematch.stopGame:
     description: Let you do /fm stop
+  firematch.loadSave:
+    description: Let you do /fm loadsave
+  firematch.saveSave:
+    description: Let you do /fm savesave
