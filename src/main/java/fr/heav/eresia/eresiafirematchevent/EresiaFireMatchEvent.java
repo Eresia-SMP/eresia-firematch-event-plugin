@@ -30,6 +30,7 @@ public final class EresiaFireMatchEvent extends JavaPlugin {
         mainFireMatchCommand.addSubcommand("stop", new StopCommand(this));
         mainFireMatchCommand.addSubcommand("loadsave", new LoadSaveCommand(this));
         mainFireMatchCommand.addSubcommand("savesave", new SaveSaveCommand(this));
+        mainFireMatchCommand.addSubcommand("revealspawns", new RevealSpawnsCommand(this));
         Objects.requireNonNull(getCommand("firematch")).setExecutor(mainFireMatchCommand);
 
         saveFile = new File(getDataFolder(), "save.yml");

@@ -45,3 +45,5 @@ permissions:
     description: Let you do /fm loadsave
   firematch.saveSave:
     description: Let you do /fm savesave
+  firematch.revealSpawns:
+    description: Let you do /fm revealspawns
