@@ -49,6 +49,7 @@ public class GameManager implements Listener {
         }
     }
 
+    private EresiaFireMatchEvent plugin;
     private final Map<Player, Participant> participants = new HashMap<>();
     private final Random random = new Random();
     private boolean isStarted = false;
@@ -71,7 +72,9 @@ public class GameManager implements Listener {
         return isEnded;
     }
 
-    GameManager() {
+    GameManager(EresiaFireMatchEvent plugin) {
+        this.plugin = plugin;
+
         recreateKillsObjective();
 
         firework = new ItemStack(Material.FIREWORK_ROCKET, 10);
@@ -285,13 +288,13 @@ public class GameManager implements Listener {
             rp.timerBossBar.setProgress(0.);
             rp.timerBossBar.addPlayer(player);
 
-            rp.bossBarRefreshTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(EresiaFireMatchEvent.globalInstance, () -> {
+            rp.bossBarRefreshTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
                 long currentTime = System.currentTimeMillis() - start;
                 double progress = Math.min(1.0, ((double)currentTime) / ((double)respawnDuration));
                 rp.timerBossBar.setProgress(progress);
             }, 0, 5);
 
-            rp.timerEndTask = Bukkit.getScheduler().scheduleSyncDelayedTask(EresiaFireMatchEvent.globalInstance, () -> {
+            rp.timerEndTask = Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                 rp.timerBossBar.removeAll();
                 Bukkit.getScheduler().cancelTask(rp.bossBarRefreshTask);
 
@@ -427,13 +430,13 @@ public class GameManager implements Listener {
             player.setGameMode(GameMode.SPECTATOR);
         }
         long startTime = System.currentTimeMillis();
-        endGameTimerTaskId = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(EresiaFireMatchEvent.globalInstance, () -> {
+        endGameTimerTaskId = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             long elapsedTime = System.currentTimeMillis()-startTime;
             double progress = Math.min(1., ((double)elapsedTime) / ((double)endGameDuration));
             endGameTimingBossBar.setProgress(progress);
         }, 0, 10);
         Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(
-                EresiaFireMatchEvent.globalInstance,
+                plugin,
                 this::stopGame,
                 endGameDuration / 50
         );
