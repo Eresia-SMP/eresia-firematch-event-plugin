@@ -8,14 +8,21 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.PlayerGameModeChangeEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.CrossbowMeta;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.scoreboard.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,6 +50,8 @@ public class GameManager implements Listener {
     private boolean isEnded = false;
     private final Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
     private Objective killsObjs;
+    private final ItemStack firework;
+    private final ItemStack crossBow;
 
     public boolean getIsStarted() {
         return isStarted;
@@ -53,6 +62,27 @@ public class GameManager implements Listener {
 
     GameManager() {
         recreateKillsObjective();
+
+        firework = new ItemStack(Material.FIREWORK_ROCKET, 10);
+        FireworkMeta fireworkMeta = (FireworkMeta) firework.getItemMeta();
+        for (int i = 0; i < 10; i++) {
+            fireworkMeta.addEffect(FireworkEffect.builder()
+                    .flicker(false)
+                    .trail(false)
+                    .withColor(Color.WHITE)
+                    .withFade(Color.WHITE)
+                    .with(FireworkEffect.Type.BALL)
+                    .build());
+        }
+        fireworkMeta.setPower(2);
+        firework.setItemMeta(fireworkMeta);
+
+        crossBow = new ItemStack(Material.CROSSBOW, 1);
+        CrossbowMeta crossbowMeta = (CrossbowMeta) crossBow.getItemMeta();
+        crossbowMeta.addEnchant(Enchantment.QUICK_CHARGE, 3, true);
+        crossbowMeta.setUnbreakable(true);
+        crossbowMeta.addChargedProjectile(firework.clone());
+        crossBow.setItemMeta(crossbowMeta);
     }
     private void recreateKillsObjective() {
         if (killsObjs != null)
@@ -115,20 +145,19 @@ public class GameManager implements Listener {
         killsObjs.getScore(player.getName()).setScore(0);
 
         player.setGameMode(GameMode.ADVENTURE);
+        player.getInventory().clear();
 
-        Location spawnLocation;
         if (isStarted)
-            spawnLocation = getRandomLocation();
-        else
-            spawnLocation = getLobby();
-        if (spawnLocation != null)
-            player.teleport(spawnLocation);
+            makeAPlayerStartGame(player);
+        else {
+            Location spawnLocation = getLobby();
+            if (spawnLocation != null)
+                player.teleport(spawnLocation);
+        }
 
         for (Player player2 : participants.keySet()) {
             player2.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + player.getName() + ChatColor.RESET + ChatColor.GREEN + " has joined the game");
         }
-
-        player.getInventory().clear();
 
         participants.put(player, participant);
         return ParticipantJoinResult.Joined;
@@ -185,12 +214,14 @@ public class GameManager implements Listener {
                             .append(Component.text(player.getKiller().getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)));
             Score score = killsObjs.getScore(player.getKiller().getName());
             score.setScore(score.getScore()+1);
+
         }
     }
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         if (!participants.containsKey(event.getPlayer()))
             return;
+        Player player = event.getPlayer();
         if (!isStarted) {
             Location lobby = getLobby();
             if (lobby != null)
@@ -200,6 +231,7 @@ public class GameManager implements Listener {
             Location spawnLocation = getRandomLocation();
             if (spawnLocation != null)
                 event.setRespawnLocation(spawnLocation);
+            player.getInventory().setItem(4, crossBow.clone());
         }
     }
     @EventHandler
@@ -208,17 +240,82 @@ public class GameManager implements Listener {
             return;
         event.setCancelled(true);
     }
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+        if (!participants.containsKey(event.getPlayer()))
+            return;
+        event.setCancelled(true);
+    }
+    @EventHandler
+    public void onEntityShootBow(EntityShootBowEvent event) {
+        if (!participants.containsKey(event.getEntity()))
+            return;
+        Player player = (Player)event.getEntity();
+        if (event.getBow().getType() == Material.CROSSBOW) {
+            player.getInventory().setItemInOffHand(firework.clone());
+        }
+    }
+    @EventHandler
+    public void onInventoryInteract(InventoryClickEvent event) {
+        if (!participants.containsKey(event.getWhoClicked()))
+            return;
+        event.setCancelled(true);
+    }
+    @EventHandler
+    public void onPlayerSwapHands(PlayerSwapHandItemsEvent event) {
+        if (!participants.containsKey(event.getPlayer()) && isStarted)
+            return;
+        event.setCancelled(true);
+    }
+    @EventHandler
+    public void onPlayerSwapHands(PlayerInteractAtEntityEvent event) {
+        if (!participants.containsKey(event.getPlayer()))
+            return;
+        event.setCancelled(true);
+    }
+    @EventHandler
+    public void onEntityDamage(EntityDamageEvent event) {
+        if (!participants.containsKey(event.getEntity()))
+            return;
+        if (event.getCause() == EntityDamageEvent.DamageCause.ENTITY_ATTACK) {
+            if (!isStarted) {
+                event.setCancelled(true);
+            }
+            else {
+                event.setDamage(10);
+            }
+        }
+    }
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (!participants.containsKey(event.getPlayer()) || event.getClickedBlock() == null)
+            return;
+        String blockName = event.getClickedBlock().getType().name();
+        if (blockName.contains("TRAPDOOR") || blockName.contains("DOOR"))
+            event.setCancelled(true);
+    }
 
     public StartGameResult startGame() {
         if (isStarted)
             return StartGameResult.AlreadyStarted;
+
         for (Player player : participants.keySet()) {
             player.sendMessage(ChatColor.GREEN + "" + ChatColor.BOLD + "THE GAME HAS STARTED!");
             player.sendTitle("The game has started!", "Good luck", 10, 70, 10);
-            player.teleport(Objects.requireNonNull(getRandomLocation()));
+            makeAPlayerStartGame(player);
         }
         isStarted = true;
         return StartGameResult.Started;
+    }
+    private void makeAPlayerStartGame(Player player) {
+        player.teleport(Objects.requireNonNull(getRandomLocation()));
+
+        PlayerInventory playerInventory = player.getInventory();
+
+        playerInventory.clear();
+        playerInventory.setItemInOffHand(firework.clone());
+        playerInventory.setHeldItemSlot(4);
+        playerInventory.setItemInMainHand(crossBow.clone());
     }
     public enum StartGameResult {
         Started,
@@ -279,6 +376,7 @@ public class GameManager implements Listener {
             if (lobby != null)
                 player.teleport(lobby);
             player.setGameMode(GameMode.ADVENTURE);
+            player.getInventory().clear();
         }
 
         isStarted = false;
