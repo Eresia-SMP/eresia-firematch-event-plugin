@@ -223,6 +223,8 @@ public class GameManager implements Listener {
         }
         else {
             event.setCancelled(true);
+            if (respawningPlayers.containsKey(player))
+                return;
             player.setGameMode(GameMode.SPECTATOR);
 
             String killerName;
