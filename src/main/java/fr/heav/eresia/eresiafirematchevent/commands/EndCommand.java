@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EndCommand implements SubCommand {
+    private EresiaFireMatchEvent plugin;
+    public EndCommand(EresiaFireMatchEvent plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public String getDescription() {
         return "Transition the game into the end scene";
@@ -28,7 +33,7 @@ public class EndCommand implements SubCommand {
             return true;
         }
 
-        switch (EresiaFireMatchEvent.gameManager.endGame()) {
+        switch (plugin.gameManager.endGame()) {
             case Ended:
                 sender.sendMessage(ChatColor.WHITE + "The game has been ended");
                 break;

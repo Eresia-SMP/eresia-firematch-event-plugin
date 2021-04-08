@@ -32,8 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class GameManager implements Listener {
-    int respawnDuration = 3_000;
-    int endGameDuration = 30_000;
+    GameSettings settings;
 
     private static class Participant {
         public Player player;
@@ -72,8 +71,9 @@ public class GameManager implements Listener {
         return isEnded;
     }
 
-    GameManager(EresiaFireMatchEvent plugin) {
+    GameManager(EresiaFireMatchEvent plugin, String name) {
         this.plugin = plugin;
+        this.settings = new GameSettings(plugin, name);
 
         recreateKillsObjective();
 
@@ -126,40 +126,8 @@ public class GameManager implements Listener {
         Bukkit.getScheduler().cancelTask(rp.timerEndTask);
     }
 
-    public Location getLocationFromString(Server server, String locationStr) {
-        String[] splittedPos = locationStr.split(";");
-
-        return new Location(
-                server.getWorld(splittedPos[0]),
-                Float.parseFloat(splittedPos[1]),
-                Float.parseFloat(splittedPos[2]),
-                Float.parseFloat(splittedPos[3]),
-                Float.parseFloat(splittedPos[4]),
-                Float.parseFloat(splittedPos[5]));
-    }
-    public String getStringFromLocation(Location location) {
-        return location.getWorld().getName()+";"+location.getX()+";"+location.getY()+";"+location.getZ()+";"+location.getYaw()+";"+location.getPitch();
-    }
-
-    public @Nullable Location getRandomLocation() {
-        List<String> locations = EresiaFireMatchEvent.save.getStringList("spawns");
-        if (locations.size() == 0)
-            return null;
-
-        return getLocationFromString(
-                Bukkit.getServer(),
-                locations.get(random.nextInt(locations.size()))
-        );
-    }
-
-    public void setLobby(Location location) {
-        EresiaFireMatchEvent.save.set("lobby", getStringFromLocation(location));
-    }
-    public @Nullable Location getLobby() {
-        String stringLobbyLocation = EresiaFireMatchEvent.save.getString("lobby");
-        if (stringLobbyLocation == null)
-            return null;
-        return getLocationFromString(Bukkit.getServer(), stringLobbyLocation);
+    public @NotNull GameSettings getSettings() {
+        return settings;
     }
 
     public @NotNull ParticipantJoinResult addParticipant(@NotNull Player player, boolean shouldJoinIfGameIsStarted) {
@@ -185,7 +153,7 @@ public class GameManager implements Listener {
         if (isStarted)
             makeAPlayerStartGame(player);
         else {
-            Location spawnLocation = getLobby();
+            Location spawnLocation = settings.getLobbyLocation();
             if (spawnLocation != null)
                 player.teleport(spawnLocation);
         }
@@ -290,7 +258,7 @@ public class GameManager implements Listener {
 
             rp.bossBarRefreshTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
                 long currentTime = System.currentTimeMillis() - start;
-                double progress = Math.min(1.0, ((double)currentTime) / ((double)respawnDuration));
+                double progress = Math.min(1.0, ((double)currentTime) / ((double)settings.getRespawnDuration()));
                 rp.timerBossBar.setProgress(progress);
             }, 0, 5);
 
@@ -298,14 +266,14 @@ public class GameManager implements Listener {
                 rp.timerBossBar.removeAll();
                 Bukkit.getScheduler().cancelTask(rp.bossBarRefreshTask);
 
-                Location spawnLocation = getRandomLocation();
+                Location spawnLocation = settings.getRandomRespawn(random);
                 if (spawnLocation != null)
                     player.teleport(spawnLocation);
                 player.setGameMode(GameMode.ADVENTURE);
                 player.getInventory().setItem(4, crossBow.clone());
 
                 respawningPlayers.remove(player);
-            }, respawnDuration / 50); // Ms / 50 = Tick
+            }, settings.getRespawnDuration() / 50); // Ms / 50 = Tick
         }
     }
     @EventHandler
@@ -393,7 +361,7 @@ public class GameManager implements Listener {
         return StartGameResult.Started;
     }
     private void makeAPlayerStartGame(Player player) {
-        player.teleport(Objects.requireNonNull(getRandomLocation()));
+        player.teleport(Objects.requireNonNull(settings.getRandomRespawn(random)));
 
         PlayerInventory playerInventory = player.getInventory();
 
@@ -432,13 +400,13 @@ public class GameManager implements Listener {
         long startTime = System.currentTimeMillis();
         endGameTimerTaskId = Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
             long elapsedTime = System.currentTimeMillis()-startTime;
-            double progress = Math.min(1., ((double)elapsedTime) / ((double)endGameDuration));
+            double progress = Math.min(1., ((double)elapsedTime) / ((double)settings.getEndGameDuration()));
             endGameTimingBossBar.setProgress(progress);
         }, 0, 10);
         Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(
                 plugin,
                 this::stopGame,
-                endGameDuration / 50
+                settings.getEndGameDuration() / 50
         );
 
         return EndGameResult.Ended;
@@ -462,7 +430,7 @@ public class GameManager implements Listener {
             endGameTimingBossBar = null;
         }
 
-        Location lobby = getLobby();
+        Location lobby = settings.getLobbyLocation();
         for (Player player : participants.keySet()) {
             if (lobby != null)
                 player.teleport(lobby);
@@ -477,11 +445,5 @@ public class GameManager implements Listener {
     public enum StopGameResult {
         Stopped,
         AlreadyStopped,
-    }
-
-    public void addSpawnpoint(Location location) {
-        List<String> spawns = EresiaFireMatchEvent.save.getStringList("spawns");
-        spawns.add(getStringFromLocation(location));
-        EresiaFireMatchEvent.save.set("spawns", spawns);
     }
 }

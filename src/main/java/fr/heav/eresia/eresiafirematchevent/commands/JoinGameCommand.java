@@ -13,6 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JoinGameCommand implements SubCommand {
+    private EresiaFireMatchEvent plugin;
+    public JoinGameCommand(EresiaFireMatchEvent plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public String getDescription() {
         return "Join une game";
@@ -24,7 +29,7 @@ public class JoinGameCommand implements SubCommand {
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        GameManager gameManager = EresiaFireMatchEvent.gameManager;
+        GameManager gameManager = plugin.gameManager;
 
         if (!sender.hasPermission("firematch.joinMatch")) {
             sender.sendMessage(ChatColor.RED + "You do not have the permission to join a game");
@@ -53,7 +58,7 @@ public class JoinGameCommand implements SubCommand {
             targetName = "You";
         }
 
-        switch (EresiaFireMatchEvent.gameManager.addParticipant(target, sender.hasPermission("firematch.joinMatch.during"))) {
+        switch (plugin.gameManager.addParticipant(target, sender.hasPermission("firematch.joinMatch.during"))) {
             case Joined:
                 sender.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + targetName + ChatColor.RESET + ChatColor.WHITE + " has successfully joined to the game");
                 break;

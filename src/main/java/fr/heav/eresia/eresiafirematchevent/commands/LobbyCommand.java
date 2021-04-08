@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LobbyCommand implements SubCommand {
+    private EresiaFireMatchEvent plugin;
+    public LobbyCommand(EresiaFireMatchEvent plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public String getDescription() {
         return "Set the lobby of the game";
@@ -33,7 +38,7 @@ public class LobbyCommand implements SubCommand {
             return true;
         }
         Player player = (Player) sender;
-        EresiaFireMatchEvent.gameManager.setLobby(player.getLocation());
+        plugin.gameManager.getSettings().setLobbyLocation(player.getLocation());
         player.sendMessage(ChatColor.WHITE + "The lobby location has been changed");
         return true;
     }

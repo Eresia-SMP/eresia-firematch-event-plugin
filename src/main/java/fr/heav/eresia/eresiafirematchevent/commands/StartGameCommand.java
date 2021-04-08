@@ -11,6 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StartGameCommand implements SubCommand {
+    private EresiaFireMatchEvent plugin;
+    public StartGameCommand(EresiaFireMatchEvent plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public String getDescription() {
         return "Start une game";
@@ -26,7 +31,7 @@ public class StartGameCommand implements SubCommand {
             sender.sendMessage(ChatColor.RED + "You do not have the permission to start the game");
             return true;
         }
-        switch (EresiaFireMatchEvent.gameManager.startGame()) {
+        switch (plugin.gameManager.startGame()) {
             case AlreadyStarted:
                 sender.sendMessage(ChatColor.RED + "The game is already started");
                 break;

@@ -11,6 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StopCommand implements SubCommand {
+    private EresiaFireMatchEvent plugin;
+    public StopCommand(EresiaFireMatchEvent plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public String getDescription() {
         return "Stop the game";
@@ -27,7 +32,7 @@ public class StopCommand implements SubCommand {
             return true;
         }
 
-        switch (EresiaFireMatchEvent.gameManager.stopGame()) {
+        switch (plugin.gameManager.stopGame()) {
             case Stopped:
                 sender.sendMessage(ChatColor.WHITE + "The game has been stopped");
                 break;

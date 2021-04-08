@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LeaveGameCommand implements SubCommand {
+    private EresiaFireMatchEvent plugin;
+    public LeaveGameCommand(EresiaFireMatchEvent plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public String getDescription() {
         return "Leave une game";
@@ -50,7 +55,7 @@ public class LeaveGameCommand implements SubCommand {
             targetName = "You";
         }
 
-        switch (EresiaFireMatchEvent.gameManager.removeParticipant(target)) {
+        switch (plugin.gameManager.removeParticipant(target)) {
             case Left:
                 sender.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + targetName + ChatColor.RESET + ChatColor.WHITE + " has successfully left the game");
                 break;

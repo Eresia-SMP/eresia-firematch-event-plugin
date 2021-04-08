@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AddSpawnCommand implements SubCommand {
+    private EresiaFireMatchEvent plugin;
+    public AddSpawnCommand(EresiaFireMatchEvent plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public String getDescription() {
         return "Ajoute un spawner";
@@ -28,7 +33,7 @@ public class AddSpawnCommand implements SubCommand {
             return true;
         }
         Player player = (Player)sender;
-        EresiaFireMatchEvent.gameManager.addSpawnpoint(player.getLocation());
+        plugin.gameManager.getSettings().addRespawnLocation(player.getLocation());
         sender.sendMessage(ChatColor.WHITE + "The spawnpoint has been added");
 
         return true;
