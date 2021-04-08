@@ -209,9 +209,23 @@ public class GameManager implements Listener {
                     .append(Component.text(" is dead in a mysterious way").color(NamedTextColor.YELLOW)));
         }
         else {
-            event.deathMessage(Component.text(player.getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)
-                            .append(Component.text(" has been killed by ").color(NamedTextColor.YELLOW))
-                            .append(Component.text(player.getKiller().getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)));
+            if (player.getKiller() == null) {
+                event.deathMessage(
+                        Component.text()
+                            .append(Component.text(player.getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD))
+                            .append(Component.text(" has been killed by... nobody ?").color(NamedTextColor.YELLOW))
+                            .build()
+                );
+            }
+            else {
+                event.deathMessage(
+                        Component.text()
+                                .append(Component.text(player.getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD))
+                                .append(Component.text(" has been killed by ").color(NamedTextColor.YELLOW))
+                                .append(Component.text(player.getKiller().getName()).color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD))
+                                .build()
+                );
+            }
             Score score = killsObjs.getScore(player.getKiller().getName());
             score.setScore(score.getScore()+1);
 
