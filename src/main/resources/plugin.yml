@@ -47,3 +47,5 @@ permissions:
     description: Let you do /fm savesave
   firematch.revealSpawns:
     description: Let you do /fm revealspawns
+  firematch.deleteSpawn:
+    description: Let you do /fm deletespawn
