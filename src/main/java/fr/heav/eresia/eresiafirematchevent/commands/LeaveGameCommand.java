@@ -1,6 +1,7 @@
 package fr.heav.eresia.eresiafirematchevent.commands;
 
 import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
+import fr.heav.eresia.eresiafirematchevent.GameManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -54,8 +55,13 @@ public class LeaveGameCommand implements SubCommand {
             target = (Player)sender;
             targetName = "You";
         }
+        GameManager gameManager = GameManager.getPlayerGameManager(target);
+        if (gameManager == null) {
+            sender.sendMessage(ChatColor.RED + targetName + " is not in any game");
+            return true;
+        }
 
-        switch (plugin.gameManager.removeParticipant(target)) {
+        switch (gameManager.removeParticipant(target)) {
             case Left:
                 sender.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + targetName + ChatColor.RESET + ChatColor.WHITE + " has successfully left the game");
                 break;

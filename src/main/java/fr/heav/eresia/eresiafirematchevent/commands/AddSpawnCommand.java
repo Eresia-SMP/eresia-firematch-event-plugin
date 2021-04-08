@@ -1,6 +1,7 @@
 package fr.heav.eresia.eresiafirematchevent.commands;
 
 import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
+import fr.heav.eresia.eresiafirematchevent.GameManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -23,7 +24,7 @@ public class AddSpawnCommand implements SubCommand {
     }
     @Override
     public String getHelp() {
-        return "addspawn";
+        return "addspawn <game name>";
     }
 
     @Override
@@ -32,14 +33,27 @@ public class AddSpawnCommand implements SubCommand {
             sender.sendMessage(ChatColor.RED + "You do not have the permission to add a spawn point");
             return true;
         }
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "You must specify the game name");
+            return true;
+        }
+        GameManager gameManager = plugin.loadGame(args[1]);
+        if (gameManager == null) {
+            sender.sendMessage(ChatColor.RED + "This game doesn't exist");
+            return true;
+        }
+
         Player player = (Player)sender;
-        plugin.gameManager.getSettings().addRespawnLocation(player.getLocation());
+        gameManager.getSettings().addRespawnLocation(player.getLocation());
         sender.sendMessage(ChatColor.WHITE + "The spawnpoint has been added");
 
         return true;
     }
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        if (args.length == 2) {
+            return plugin.getGameNames();
+        }
         return new ArrayList<>();
     }
 }

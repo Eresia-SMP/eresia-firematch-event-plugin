@@ -47,6 +47,16 @@ public class GameManager implements Listener {
             this.playerTeam = playerTeam;
         }
     }
+    private static class RespawningPlayer {
+        public BossBar timerBossBar;
+        public int bossBarRefreshTask;
+        public int timerEndTask;
+    }
+    private static Map<Player, GameManager> playerGameManagerMap = new HashMap<>();
+
+    public static @Nullable GameManager getPlayerGameManager(@NotNull Player player) {
+        return playerGameManagerMap.get(player);
+    }
 
     private EresiaFireMatchEvent plugin;
     private final Map<Player, Participant> participants = new HashMap<>();
@@ -58,11 +68,6 @@ public class GameManager implements Listener {
     private final ItemStack firework;
     private final ItemStack crossBow;
     private Map<Player, RespawningPlayer> respawningPlayers = new HashMap<>();
-    private static class RespawningPlayer {
-        public BossBar timerBossBar;
-        public int bossBarRefreshTask;
-        public int timerEndTask;
-    }
 
     public boolean getIsStarted() {
         return isStarted;
@@ -137,6 +142,11 @@ public class GameManager implements Listener {
             return ParticipantJoinResult.GameStarted;
         if (participants.containsKey(player))
             return ParticipantJoinResult.PlayerAlreadyInGame;
+        if (playerGameManagerMap.containsKey(player)) {
+            GameManager oldGameManager = playerGameManagerMap.remove(player);
+            oldGameManager.removeParticipant(player);
+        }
+        playerGameManagerMap.put(player, this);
 
         Team participantTeam = scoreboard.registerNewTeam(player.getName().substring(0,Math.min(player.getName().length()-1, 15)));
         participantTeam.setAllowFriendlyFire(false);
@@ -181,6 +191,7 @@ public class GameManager implements Listener {
             return ParticipantLeaveResult.PlayerNotInGame;
         Participant participant = participants.remove(player);
         participant.playerTeam.unregister();
+        playerGameManagerMap.remove(player);
 
         player.teleport(participant.originalLocation);
         player.setGameMode(participant.originalGameMode);
@@ -354,6 +365,7 @@ public class GameManager implements Listener {
     public StartGameResult startGame() {
         if (isStarted)
             return StartGameResult.AlreadyStarted;
+        System.out.println("START A GAME");
 
         for (Player player : participants.keySet()) {
             player.sendTitle("The game has started!", "Good luck", 10, 70, 10);

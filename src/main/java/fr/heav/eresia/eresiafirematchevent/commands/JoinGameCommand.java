@@ -20,45 +20,52 @@ public class JoinGameCommand implements SubCommand {
 
     @Override
     public String getDescription() {
-        return "Join une game";
+        return "Join a game";
     }
     @Override
     public String getHelp() {
-        return "join [user that should join the game]";
+        return "join <game name> [user that should join the game]";
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        GameManager gameManager = plugin.gameManager;
-
         if (!sender.hasPermission("firematch.joinMatch")) {
             sender.sendMessage(ChatColor.RED + "You do not have the permission to join a game");
             return true;
         }
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "You must specify the game name");
+            return true;
+        }
+        GameManager gameManager = plugin.loadGame(args[1]);
+        if (gameManager == null) {
+            sender.sendMessage(ChatColor.RED + "This game doesn't exist");
+            return true;
+        }
         Player target;
         String targetName;
-        if (!(sender instanceof Player) && args.length < 2) {
+        if (!(sender instanceof Player) && args.length < 3) {
             sender.sendMessage(ChatColor.RED + "You must specify who should join the game");
             return true;
         }
-        if (args.length >= 2) {
+        if (args.length >= 3) {
             if (!sender.hasPermission("firematch.joinMatch.someoneElse")) {
                 sender.sendMessage(ChatColor.RED + "You do not have the permission to make someone join a game");
                 return true;
             }
-            target = sender.getServer().getPlayer(args[1]);
-            targetName = target.getName();
+            target = sender.getServer().getPlayer(args[2]);
             if (target == null) {
-                sender.sendMessage(ChatColor.RED + "Could not find player "+args[1]);
+                sender.sendMessage(ChatColor.RED + "Could not find player "+args[2]);
                 return true;
             }
+            targetName = target.getName();
         }
         else {
             target = (Player)sender;
             targetName = "You";
         }
 
-        switch (plugin.gameManager.addParticipant(target, sender.hasPermission("firematch.joinMatch.during"))) {
+        switch (gameManager.addParticipant(target, sender.hasPermission("firematch.joinMatch.during"))) {
             case Joined:
                 sender.sendMessage(ChatColor.WHITE + "" + ChatColor.BOLD + targetName + ChatColor.RESET + ChatColor.WHITE + " has successfully joined to the game");
                 break;
@@ -77,10 +84,12 @@ public class JoinGameCommand implements SubCommand {
     }
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
-        if (args.length == 2 && sender.hasPermission("firematch.joinMatch.someoneElse")) {
+        if (args.length == 2) {
+            return plugin.getGameNames();
+        }
+        if (args.length == 3 && sender.hasPermission("firematch.joinMatch.someoneElse")) {
             return null;
         }
-
         return new ArrayList<>();
     }
 }

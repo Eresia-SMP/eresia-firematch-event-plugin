@@ -1,6 +1,7 @@
 package fr.heav.eresia.eresiafirematchevent.commands;
 
 import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
+import fr.heav.eresia.eresiafirematchevent.GameManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -23,7 +24,7 @@ public class EndCommand implements SubCommand {
     }
     @Override
     public String getHelp() {
-        return "end";
+        return "end <game name>";
     }
 
     @Override
@@ -32,8 +33,17 @@ public class EndCommand implements SubCommand {
             sender.sendMessage(ChatColor.RED + "You do not have the permission to end the game");
             return true;
         }
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "You must specify the game name");
+            return true;
+        }
+        GameManager gameManager = plugin.loadGame(args[1]);
+        if (gameManager == null) {
+            sender.sendMessage(ChatColor.RED + "This game doesn't exist");
+            return true;
+        }
 
-        switch (plugin.gameManager.endGame()) {
+        switch (gameManager.endGame()) {
             case Ended:
                 sender.sendMessage(ChatColor.WHITE + "The game has been ended");
                 break;
@@ -47,6 +57,9 @@ public class EndCommand implements SubCommand {
 
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
+        if (args.length == 2) {
+            return plugin.getGameNames();
+        }
         return new ArrayList<>();
     }
 }
