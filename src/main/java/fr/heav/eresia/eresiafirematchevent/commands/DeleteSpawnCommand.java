@@ -27,13 +27,13 @@ public class DeleteSpawnCommand implements SubCommand {
     public String getHelp() {
         return "deletespawn <game name>";
     }
+    @Override
+    public String getPermission() {
+        return "firematch.deletespawn";
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("firematch.deletespawn")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to use this command");
-            return true;
-        }
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED + "Only players can use this command");
             return true;

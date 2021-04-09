@@ -25,13 +25,13 @@ public class StartGameCommand implements SubCommand {
     public String getHelp() {
         return "start <game name>";
     }
+    @Override
+    public String getPermission() {
+        return "firematch.startGame";
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("firematch.startGame")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to start the game");
-            return true;
-        }
         if (args.length < 2) {
             sender.sendMessage(ChatColor.RED + "You must specify the game name");
             return true;

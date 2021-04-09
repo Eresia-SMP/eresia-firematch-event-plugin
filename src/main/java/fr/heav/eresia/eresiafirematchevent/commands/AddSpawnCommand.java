@@ -26,11 +26,15 @@ public class AddSpawnCommand implements SubCommand {
     public String getHelp() {
         return "addspawn <game name>";
     }
+    @Override
+    public String getPermission() {
+        return "firematch.addSpawn";
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player) || !sender.hasPermission("firematch.addSpawn")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to add a spawn point");
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "Only players can use this command");
             return true;
         }
         if (args.length < 2) {

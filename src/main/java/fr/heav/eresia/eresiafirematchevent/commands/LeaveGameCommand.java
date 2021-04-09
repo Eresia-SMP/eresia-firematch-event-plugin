@@ -26,13 +26,13 @@ public class LeaveGameCommand implements SubCommand {
     public String getHelp() {
         return "leave [user that should leave the game]";
     }
+    @Override
+    public String getPermission() {
+        return "firematch.leaveMatch";
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("firematch.leaveMatch")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to leave a game");
-            return true;
-        }
         Player target;
         String targetName;
         if (!(sender instanceof Player) && args.length < 2) {

@@ -32,13 +32,13 @@ public class RevealSpawnsCommand implements SubCommand {
     public String getHelp() {
         return "revealspawns <game name>";
     }
+    @Override
+    public String getPermission() {
+        return "firematch.revealSpawns";
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("firematch.revealSpawns")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to use this command");
-            return true;
-        }
         if (args.length < 2) {
             sender.sendMessage(ChatColor.RED + "You must specify the game name");
             return true;

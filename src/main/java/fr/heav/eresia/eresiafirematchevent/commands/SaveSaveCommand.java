@@ -23,14 +23,13 @@ public class SaveSaveCommand implements SubCommand {
     public String getHelp() {
         return "loadsave";
     }
+    @Override
+    public String getPermission() {
+        return "firematch.saveSave";
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("firematch.saveSave")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to save the save");
-            return true;
-        }
-
         plugin.saveSave();
         sender.sendMessage("The save file has been saved");
 

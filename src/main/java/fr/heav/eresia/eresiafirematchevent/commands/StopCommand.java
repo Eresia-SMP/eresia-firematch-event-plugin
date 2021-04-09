@@ -25,13 +25,13 @@ public class StopCommand implements SubCommand {
     public String getHelp() {
         return "stop <game name>";
     }
+    @Override
+    public String getPermission() {
+        return "firematch.stopGame";
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("firematch.stopGame")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to stop the game");
-            return true;
-        }
         if (args.length < 2) {
             sender.sendMessage(ChatColor.RED + "You must specify the game name");
             return true;

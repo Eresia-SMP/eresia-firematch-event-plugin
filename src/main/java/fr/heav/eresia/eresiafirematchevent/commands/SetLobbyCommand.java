@@ -22,18 +22,17 @@ public class SetLobbyCommand implements SubCommand {
     public String getDescription() {
         return "Set the lobby of the game";
     }
-
     @Override
     public String getHelp() {
         return "setlobby <game name>";
     }
+    @Override
+    public String getPermission() {
+        return "firematch.setLobby";
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("firematch.setLobby")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to change the lobby");
-            return true;
-        }
         if (args.length < 2) {
             sender.sendMessage(ChatColor.RED + "You must specify the game name");
             return true;

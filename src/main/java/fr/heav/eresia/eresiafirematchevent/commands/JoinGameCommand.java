@@ -26,13 +26,13 @@ public class JoinGameCommand implements SubCommand {
     public String getHelp() {
         return "join <game name> [user that should join the game]";
     }
+    @Override
+    public String getPermission() {
+        return "firematch.joinMatch";
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("firematch.joinMatch")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to join a game");
-            return true;
-        }
         if (args.length < 2) {
             sender.sendMessage(ChatColor.RED + "You must specify the game name");
             return true;

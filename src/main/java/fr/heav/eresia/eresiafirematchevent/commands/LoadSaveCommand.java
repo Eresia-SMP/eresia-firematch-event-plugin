@@ -23,14 +23,13 @@ public class LoadSaveCommand implements SubCommand {
     public String getHelp() {
         return "loadsave";
     }
+    @Override
+    public String getPermission() {
+        return "firematch.loadSave";
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("firematch.loadSave")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to load the save");
-            return true;
-        }
-
         plugin.loadSave();
         sender.sendMessage("The save file has been loaded");
 

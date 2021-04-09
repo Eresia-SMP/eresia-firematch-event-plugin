@@ -26,13 +26,13 @@ public class EndCommand implements SubCommand {
     public String getHelp() {
         return "end <game name>";
     }
+    @Override
+    public String getPermission() {
+        return "firematch.endGame";
+    }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!sender.hasPermission("firematch.endGame")) {
-            sender.sendMessage(ChatColor.RED + "You do not have the permission to end the game");
-            return true;
-        }
         if (args.length < 2) {
             sender.sendMessage(ChatColor.RED + "You must specify the game name");
             return true;

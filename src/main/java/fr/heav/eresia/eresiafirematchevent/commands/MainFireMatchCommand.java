@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 public class MainFireMatchCommand implements CommandExecutor, TabCompleter {
@@ -38,6 +39,11 @@ public class MainFireMatchCommand implements CommandExecutor, TabCompleter {
 
         SubCommand subCommand = subCommands.get(subCommandName);
         if (subCommand == null) {
+            sender.sendMessage(ChatColor.RED+"Invalid usage, valid subcommands:\n"+getHelp(label));
+            return true;
+        }
+        if (!sender.hasPermission(subCommand.getPermission())) {
+            sender.sendMessage(ChatColor.RED + "You do not have the permission to use this command");
             return true;
         }
 
@@ -54,9 +60,12 @@ public class MainFireMatchCommand implements CommandExecutor, TabCompleter {
             return subCommandsNames;
         }
         if (args.length == 2 && args[0].equals("help")) {
-            return new ArrayList<>(subCommands.keySet());
+            return subCommands.entrySet().stream()
+                    .filter((entry) -> sender.hasPermission(entry.getValue().getPermission()))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toList());
         }
-        if (args.length >= 2 && subCommands.containsKey(args[0].toLowerCase())) {
+        if (args.length >= 2 && subCommands.containsKey(args[0].toLowerCase()) && sender.hasPermission(subCommands.get(args[0].toLowerCase()).getPermission())) {
             SubCommand subCommand = subCommands.get(args[0].toLowerCase());
             return subCommand.onTabComplete(sender, command, alias, args);
         }
