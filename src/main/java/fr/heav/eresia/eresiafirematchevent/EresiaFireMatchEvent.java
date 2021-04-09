@@ -32,6 +32,7 @@ public final class EresiaFireMatchEvent extends JavaPlugin {
         mainFireMatchCommand.addSubcommand("savesave", new SaveSaveCommand(this));
         mainFireMatchCommand.addSubcommand("revealspawns", new RevealSpawnsCommand(this));
         mainFireMatchCommand.addSubcommand("deletespawn", new DeleteSpawnCommand(this));
+        mainFireMatchCommand.addSubcommand("creategame", new CreateGameCommand(this));
         Objects.requireNonNull(getCommand("firematch")).setExecutor(mainFireMatchCommand);
 
         saveFile = new File(getDataFolder(), "save.yml");
@@ -48,6 +49,14 @@ public final class EresiaFireMatchEvent extends JavaPlugin {
         }
     }
 
+    public @Nullable GameManager createGame(String name) {
+        List<String> gameNames = save.getStringList("gameNames");
+        if (gameNames.contains(name))
+            return null;
+        gameNames.add(name);
+        save.set("gameNames", gameNames);
+        return loadGame(name);
+    }
     public @Nullable GameManager loadGame(String name) {
         if (!save.getStringList("gameNames").contains(name))
             return null;

@@ -49,3 +49,5 @@ permissions:
     description: Let you do /fm revealspawns
   firematch.deleteSpawn:
     description: Let you do /fm deletespawn
+  firematch.creategame:
+    description: Let you do /fm creategame
