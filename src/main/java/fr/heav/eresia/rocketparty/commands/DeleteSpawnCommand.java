@@ -1,7 +1,7 @@
-package fr.heav.eresia.eresiafirematchevent.commands;
+package fr.heav.eresia.rocketparty.commands;
 
-import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
-import fr.heav.eresia.eresiafirematchevent.GameManager;
+import fr.heav.eresia.rocketparty.RocketParty;
+import fr.heav.eresia.rocketparty.GameManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -14,8 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DeleteSpawnCommand implements SubCommand {
-    private EresiaFireMatchEvent plugin;
-    public DeleteSpawnCommand(EresiaFireMatchEvent plugin) {
+    private RocketParty plugin;
+    public DeleteSpawnCommand(RocketParty plugin) {
         this.plugin = plugin;
     }
 

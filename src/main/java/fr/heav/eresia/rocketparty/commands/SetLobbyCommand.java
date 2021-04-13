@@ -1,7 +1,7 @@
-package fr.heav.eresia.eresiafirematchevent.commands;
+package fr.heav.eresia.rocketparty.commands;
 
-import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
-import fr.heav.eresia.eresiafirematchevent.GameManager;
+import fr.heav.eresia.rocketparty.RocketParty;
+import fr.heav.eresia.rocketparty.GameManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -12,23 +12,23 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EndCommand implements SubCommand {
-    private EresiaFireMatchEvent plugin;
-    public EndCommand(EresiaFireMatchEvent plugin) {
+public class SetLobbyCommand implements SubCommand {
+    private RocketParty plugin;
+    public SetLobbyCommand(RocketParty plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public String getDescription() {
-        return "Transition the game into the end scene";
+        return "Set the lobby of the game";
     }
     @Override
     public String getHelp() {
-        return "end <game name>";
+        return "setlobby <game name>";
     }
     @Override
     public String getPermission() {
-        return "firematch.endGame";
+        return "firematch.setLobby";
     }
 
     @Override
@@ -43,15 +43,13 @@ public class EndCommand implements SubCommand {
             return true;
         }
 
-        switch (gameManager.endGame()) {
-            case Ended:
-                sender.sendMessage(ChatColor.WHITE + "The game has been ended");
-                break;
-            case AlreadyEnded:
-                sender.sendMessage(ChatColor.WHITE + "This game cannot be ended");
-                break;
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "Only players can change the lobby location");
+            return true;
         }
-
+        Player player = (Player) sender;
+        gameManager.getSettings().setLobbyLocation(player.getLocation());
+        player.sendMessage(ChatColor.WHITE + "The lobby location has been changed");
         return true;
     }
 

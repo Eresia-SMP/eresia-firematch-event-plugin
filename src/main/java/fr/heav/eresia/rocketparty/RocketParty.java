@@ -1,6 +1,6 @@
-package fr.heav.eresia.eresiafirematchevent;
+package fr.heav.eresia.rocketparty;
 
-import fr.heav.eresia.eresiafirematchevent.commands.*;
+import fr.heav.eresia.rocketparty.commands.*;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public final class EresiaFireMatchEvent extends JavaPlugin {
+public final class RocketParty extends JavaPlugin {
     private Map<String, GameManager> gameManagers = new HashMap<>();
     public YamlConfiguration save;
     public File saveFile;

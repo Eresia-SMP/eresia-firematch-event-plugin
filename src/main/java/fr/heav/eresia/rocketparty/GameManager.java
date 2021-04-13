@@ -1,4 +1,4 @@
-package fr.heav.eresia.eresiafirematchevent;
+package fr.heav.eresia.rocketparty;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -9,9 +9,6 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Bat;
-import org.bukkit.entity.Boss;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -58,7 +55,7 @@ public class GameManager implements Listener {
         return playerGameManagerMap.get(player);
     }
 
-    private EresiaFireMatchEvent plugin;
+    private RocketParty plugin;
     private final Map<Player, Participant> participants = new HashMap<>();
     private final Random random = new Random();
     private boolean isStarted = false;
@@ -76,7 +73,7 @@ public class GameManager implements Listener {
         return isEnded;
     }
 
-    GameManager(EresiaFireMatchEvent plugin, String name) {
+    GameManager(RocketParty plugin, String name) {
         this.plugin = plugin;
         this.settings = new GameSettings(plugin, name);
 

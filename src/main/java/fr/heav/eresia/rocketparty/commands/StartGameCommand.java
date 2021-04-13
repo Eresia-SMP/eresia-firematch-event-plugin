@@ -1,7 +1,7 @@
-package fr.heav.eresia.eresiafirematchevent.commands;
+package fr.heav.eresia.rocketparty.commands;
 
-import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
-import fr.heav.eresia.eresiafirematchevent.GameManager;
+import fr.heav.eresia.rocketparty.RocketParty;
+import fr.heav.eresia.rocketparty.GameManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class StartGameCommand implements SubCommand {
-    private EresiaFireMatchEvent plugin;
-    public StartGameCommand(EresiaFireMatchEvent plugin) {
+    private RocketParty plugin;
+    public StartGameCommand(RocketParty plugin) {
         this.plugin = plugin;
     }
 

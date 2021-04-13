@@ -1,7 +1,7 @@
-package fr.heav.eresia.eresiafirematchevent.commands;
+package fr.heav.eresia.rocketparty.commands;
 
-import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
-import fr.heav.eresia.eresiafirematchevent.GameManager;
+import fr.heav.eresia.rocketparty.RocketParty;
+import fr.heav.eresia.rocketparty.GameManager;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class RevealSpawnsCommand implements SubCommand {
-    private EresiaFireMatchEvent plugin;
-    public RevealSpawnsCommand(EresiaFireMatchEvent plugin) {
+    private RocketParty plugin;
+    public RevealSpawnsCommand(RocketParty plugin) {
         this.plugin = plugin;
     }
 

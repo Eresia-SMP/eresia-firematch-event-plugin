@@ -1,7 +1,6 @@
-package fr.heav.eresia.eresiafirematchevent.commands;
+package fr.heav.eresia.rocketparty.commands;
 
-import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
-import org.bukkit.ChatColor;
+import fr.heav.eresia.rocketparty.RocketParty;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -9,9 +8,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class SaveSaveCommand implements SubCommand {
-    private EresiaFireMatchEvent plugin;
-    public SaveSaveCommand(EresiaFireMatchEvent plugin) {
+public class LoadSaveCommand implements SubCommand {
+    private RocketParty plugin;
+    public LoadSaveCommand(RocketParty plugin) {
         this.plugin = plugin;
     }
 
@@ -25,13 +24,13 @@ public class SaveSaveCommand implements SubCommand {
     }
     @Override
     public String getPermission() {
-        return "firematch.saveSave";
+        return "firematch.loadSave";
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        plugin.saveSave();
-        sender.sendMessage("The save file has been saved");
+        plugin.loadSave();
+        sender.sendMessage("The save file has been loaded");
 
         return true;
     }

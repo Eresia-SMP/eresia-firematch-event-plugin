@@ -1,6 +1,6 @@
-name: EresiaFireMatchEvent
+name: EresiaRocketParty
 version: ${project.version}
-main: fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent
+main: fr.heav.eresia.rocketparty.RocketParty
 api-version: 1.16
 authors: [ Heavenstone ]
 

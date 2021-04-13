@@ -1,22 +1,19 @@
-package fr.heav.eresia.eresiafirematchevent;
+package fr.heav.eresia.rocketparty;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Server;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
 public class GameSettings {
-    private @NotNull EresiaFireMatchEvent plugin;
+    private @NotNull RocketParty plugin;
     private @NotNull String name;
 
-    GameSettings(@NotNull EresiaFireMatchEvent plugin, @NotNull String name) {
+    GameSettings(@NotNull RocketParty plugin, @NotNull String name) {
         this.plugin = plugin;
         this.name = name;
     }

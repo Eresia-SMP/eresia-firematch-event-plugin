@@ -1,42 +1,37 @@
-package fr.heav.eresia.eresiafirematchevent.commands;
+package fr.heav.eresia.rocketparty.commands;
 
-import fr.heav.eresia.eresiafirematchevent.EresiaFireMatchEvent;
-import fr.heav.eresia.eresiafirematchevent.GameManager;
+import fr.heav.eresia.rocketparty.RocketParty;
+import fr.heav.eresia.rocketparty.GameManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class AddSpawnCommand implements SubCommand {
-    private EresiaFireMatchEvent plugin;
-    public AddSpawnCommand(EresiaFireMatchEvent plugin) {
+public class EndCommand implements SubCommand {
+    private RocketParty plugin;
+    public EndCommand(RocketParty plugin) {
         this.plugin = plugin;
     }
 
     @Override
     public String getDescription() {
-        return "Ajoute un spawner";
+        return "Transition the game into the end scene";
     }
     @Override
     public String getHelp() {
-        return "addspawn <game name>";
+        return "end <game name>";
     }
     @Override
     public String getPermission() {
-        return "firematch.addSpawn";
+        return "firematch.endGame";
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Only players can use this command");
-            return true;
-        }
         if (args.length < 2) {
             sender.sendMessage(ChatColor.RED + "You must specify the game name");
             return true;
@@ -47,12 +42,18 @@ public class AddSpawnCommand implements SubCommand {
             return true;
         }
 
-        Player player = (Player)sender;
-        gameManager.getSettings().addRespawnLocation(player.getLocation());
-        sender.sendMessage(ChatColor.WHITE + "The spawnpoint has been added");
+        switch (gameManager.endGame()) {
+            case Ended:
+                sender.sendMessage(ChatColor.WHITE + "The game has been ended");
+                break;
+            case AlreadyEnded:
+                sender.sendMessage(ChatColor.WHITE + "This game cannot be ended");
+                break;
+        }
 
         return true;
     }
+
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, @NotNull String[] args) {
         if (args.length == 2) {

@@ -1,4 +1,4 @@
-package fr.heav.eresia.eresiafirematchevent.commands;
+package fr.heav.eresia.rocketparty.commands;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
