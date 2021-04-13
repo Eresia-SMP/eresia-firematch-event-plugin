@@ -1,7 +1,7 @@
 package fr.heav.eresia.rocketparty.commands;
 
 import fr.heav.eresia.rocketparty.RocketParty;
-import fr.heav.eresia.rocketparty.GameManager;
+import fr.heav.eresia.rocketparty.gamemanager.GameManager;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

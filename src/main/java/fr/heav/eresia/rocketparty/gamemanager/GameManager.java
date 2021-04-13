@@ -1,5 +1,6 @@
-package fr.heav.eresia.rocketparty;
+package fr.heav.eresia.rocketparty.gamemanager;
 
+import fr.heav.eresia.rocketparty.RocketParty;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -31,19 +32,6 @@ import java.util.*;
 public class GameManager implements Listener {
     GameSettings settings;
 
-    private static class Participant {
-        public Player player;
-        public Location originalLocation;
-        public GameMode originalGameMode;
-        public Team playerTeam;
-
-        Participant(Player player, Team playerTeam) {
-            this.player = player;
-            this.originalLocation = player.getLocation().clone();
-            this.originalGameMode = player.getGameMode();
-            this.playerTeam = playerTeam;
-        }
-    }
     private static class RespawningPlayer {
         public BossBar timerBossBar;
         public int bossBarRefreshTask;
@@ -73,7 +61,7 @@ public class GameManager implements Listener {
         return isEnded;
     }
 
-    GameManager(RocketParty plugin, String name) {
+    public GameManager(RocketParty plugin, String name) {
         this.plugin = plugin;
         this.settings = new GameSettings(plugin, name);
 

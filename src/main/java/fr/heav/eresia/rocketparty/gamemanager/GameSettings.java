@@ -1,5 +1,6 @@
-package fr.heav.eresia.rocketparty;
+package fr.heav.eresia.rocketparty.gamemanager;
 
+import fr.heav.eresia.rocketparty.RocketParty;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +14,7 @@ public class GameSettings {
     private @NotNull RocketParty plugin;
     private @NotNull String name;
 
-    GameSettings(@NotNull RocketParty plugin, @NotNull String name) {
+    public GameSettings(@NotNull RocketParty plugin, @NotNull String name) {
         this.plugin = plugin;
         this.name = name;
     }

@@ -1,6 +1,7 @@
 package fr.heav.eresia.rocketparty;
 
 import fr.heav.eresia.rocketparty.commands.*;
+import fr.heav.eresia.rocketparty.gamemanager.GameManager;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
